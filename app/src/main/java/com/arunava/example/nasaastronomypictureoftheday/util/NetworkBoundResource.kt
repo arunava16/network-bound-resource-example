@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
 // ResultType: Type for the Resource data.
 // RequestType: Type for the API response.
@@ -31,22 +32,23 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
 
     private suspend fun fetchFromNetwork(dbData: ResultType) {
         delay(4000)
-        try {
-            val apiResponse = networkFetch()
-            if (apiResponse != null) {
-                saveFetchResult(apiResponse)
-                result.postValue(Resource.Success(loadFromDb()))
-            } else {
-                result.postValue(Resource.Error(Throwable("null response"), dbData))
-            }
-        } catch (e: Exception) {
-            result.postValue(Resource.Error(e, dbData))
+        val apiResponse = networkFetch()
+        if (apiResponse.isSuccessful && apiResponse.body() != null) {
+            saveFetchResult(apiResponse.body()!!)
+            result.postValue(Resource.Success(loadFromDb()))
+        } else {
+            result.postValue(
+                Resource.Error(
+                    Throwable(apiResponse.errorBody()?.string()),
+                    dbData
+                )
+            )
         }
     }
 
     // Called to create the API call.
     @WorkerThread
-    protected abstract suspend fun networkFetch(): RequestType?
+    protected abstract suspend fun networkFetch(): Response<RequestType>
 
     // Called to save the result of the API response into the database
     @WorkerThread

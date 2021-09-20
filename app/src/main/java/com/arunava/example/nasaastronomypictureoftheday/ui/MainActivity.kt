@@ -3,25 +3,26 @@ package com.arunava.example.nasaastronomypictureoftheday.ui
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import com.arunava.example.nasaastronomypictureoftheday.databinding.ActivityMainBinding
 import com.arunava.example.nasaastronomypictureoftheday.util.Resource
-import com.arunava.example.nasaastronomypictureoftheday.util.ViewModelFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
 
     private val date by lazy { intent.getStringExtra("date") }
 
-    private val viewModel: MainViewModel by viewModels { ViewModelFactory }
+    private val viewModel: MainViewModel by lazy { ViewModelProvider(this)[MainViewModel::class.java] }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     Glide.with(this@MainActivity)
                         .load(it.data?.url)
-                        .into(object : CustomTarget<Drawable>(){
+                        .into(object : CustomTarget<Drawable>() {
                             override fun onResourceReady(
                                 resource: Drawable,
                                 transition: Transition<in Drawable>?

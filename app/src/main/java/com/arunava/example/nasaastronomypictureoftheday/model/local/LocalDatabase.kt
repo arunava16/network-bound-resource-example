@@ -10,13 +10,4 @@ import com.arunava.example.nasaastronomypictureoftheday.model.local.data.Picture
 abstract class LocalDatabase : RoomDatabase() {
 
     abstract fun pictureOfTheDayDao(): PicturesDao
-
-    companion object {
-
-        @JvmStatic
-        fun getInstance(context: Context): LocalDatabase {
-            return Room.databaseBuilder(context, LocalDatabase::class.java, "local_db")
-                .build()
-        }
-    }
 }

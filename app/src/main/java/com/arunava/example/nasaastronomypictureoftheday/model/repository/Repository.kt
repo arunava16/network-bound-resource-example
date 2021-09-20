@@ -7,9 +7,10 @@ import com.arunava.example.nasaastronomypictureoftheday.model.remote.Api
 import com.arunava.example.nasaastronomypictureoftheday.model.remote.data.PictureOfTheDayResponse
 import com.arunava.example.nasaastronomypictureoftheday.util.NetworkBoundResource
 import com.arunava.example.nasaastronomypictureoftheday.util.Resource
-import kotlinx.coroutines.flow.*
+import retrofit2.Response
+import javax.inject.Inject
 
-class Repository(
+class Repository @Inject constructor(
     private val api: Api,
     private val db: LocalDatabase
 ) {
@@ -18,7 +19,7 @@ class Repository(
 
     fun getPictureOfTheDay(dateString: String?): LiveData<Resource<Picture>> {
         return object : NetworkBoundResource<Picture, PictureOfTheDayResponse>() {
-            override suspend fun networkFetch(): PictureOfTheDayResponse {
+            override suspend fun networkFetch(): Response<PictureOfTheDayResponse> {
                 return api.getPictureOfTheDay(dateString)
             }
 

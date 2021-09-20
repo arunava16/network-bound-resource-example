@@ -7,14 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.arunava.example.nasaastronomypictureoftheday.model.local.data.Picture
 import com.arunava.example.nasaastronomypictureoftheday.model.repository.Repository
 import com.arunava.example.nasaastronomypictureoftheday.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.lang.Exception
+import javax.inject.Inject
 
-class MainViewModel(private val repository: Repository) : ViewModel() {
-
-//    val pictureOfTheDay = repository.getPictureOfTheDay()
+@HiltViewModel
+class MainViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
 
     val pictureOfTheDay = MediatorLiveData<Resource<Picture>>()
 
