@@ -59,7 +59,7 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
     // Called with the data in the database to decide whether to fetch
     // potentially updated data from the network.
     @MainThread
-    protected abstract fun shouldFetch(data: ResultType?): Boolean
+    open fun shouldFetch(data: ResultType?) = true
 
     // Called when the fetch fails. The child class may want to reset components
     // like rate limiter.

@@ -39,47 +39,7 @@ class Repository(
             override suspend fun loadFromDb(): Picture {
                 return picturesDao.getPicture()
             }
-
-            override fun shouldFetch(data: Picture?): Boolean {
-                return true
-            }
         }.asLiveData()
-    }
-
-//    fun getPictureOfTheDay() = networkBoundResource(
-//        query = {
-//            picturesDao.getPicture()
-//        },
-//        fetch = {
-//            api.getPictureOfTheDay()
-//        },
-//        saveFetchResult = {
-//
-//        }
-//    )
-
-    private fun <ResultType, RequestType> networkBoundResource(
-        query: () -> Flow<ResultType>,
-        fetch: suspend () -> RequestType,
-        saveFetchResult: suspend (RequestType) -> Unit,
-        shouldFetch: (ResultType) -> Boolean = { true }
-    ) = flow {
-        val data = query().first()
-
-        val flow = if (shouldFetch(data)) {
-            emit(Resource.Loading(data))
-
-            try {
-                saveFetchResult(fetch())
-                query().map { Resource.Success(it) }
-            } catch (e: Exception) {
-                query().map { Resource.Error(e, it) }
-            }
-        } else {
-            query().map { Resource.Success(it) }
-        }
-
-        emitAll(flow)
     }
 
     suspend fun updateImagePath(imagePath: String) {
