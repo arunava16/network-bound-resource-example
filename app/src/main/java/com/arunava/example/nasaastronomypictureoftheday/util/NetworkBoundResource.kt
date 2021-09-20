@@ -4,10 +4,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import retrofit2.Response
 
 // ResultType: Type for the Resource data.
@@ -18,20 +15,18 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
 
     fun asLiveData() = result as LiveData<Resource<ResultType>>
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            val dbData = loadFromDb()
-            result.postValue(Resource.Loading(dbData))
-            if (shouldFetch(dbData)) {
-                fetchFromNetwork(dbData)
-            } else {
-                result.postValue(Resource.Success(dbData))
-            }
+    suspend fun init() {
+        val dbData = loadFromDb()
+        result.postValue(Resource.Loading(dbData))
+        if (shouldFetch(dbData)) {
+            fetchFromNetwork(dbData)
+        } else {
+            result.postValue(Resource.Success(dbData))
         }
     }
 
     private suspend fun fetchFromNetwork(dbData: ResultType) {
-        delay(4000)
+        delay(3000)
         val apiResponse = networkFetch()
         if (apiResponse.isSuccessful && apiResponse.body() != null) {
             saveFetchResult(apiResponse.body()!!)

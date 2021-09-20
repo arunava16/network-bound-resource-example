@@ -19,8 +19,10 @@ class MainViewModel @Inject constructor(private val repository: Repository) : Vi
     val pictureOfTheDay = MediatorLiveData<Resource<Picture>>()
 
     fun getPictureOfTheDay(date: String?) {
-        pictureOfTheDay.addSource(repository.getPictureOfTheDay(date)) {
-            pictureOfTheDay.value = it
+        viewModelScope.launch {
+            pictureOfTheDay.addSource(repository.getPictureOfTheDay(date)) {
+                pictureOfTheDay.value = it
+            }
         }
     }
 
