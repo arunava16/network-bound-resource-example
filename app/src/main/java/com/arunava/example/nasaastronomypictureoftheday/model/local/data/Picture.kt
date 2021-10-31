@@ -13,5 +13,5 @@ data class Picture(
     val serviceVersion: String,
     val title: String,
     val url: String,
-    val cachedImagePath:String? = null
+    val cachedImagePath: String? = null
 )

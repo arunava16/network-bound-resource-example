@@ -14,6 +14,7 @@ interface Api {
     @GET("apod")
     suspend fun getPictureOfTheDay(
         @Query("date") date: String?,
-        @Query("api_key") apiKey: String = "DEMO_KEY"
+        @Query("api_key") apiKey: String = "DEMO_KEY",
+        @Query("thumbs") thumbs: Boolean = true
     ): Response<PictureOfTheDayResponse>
 }

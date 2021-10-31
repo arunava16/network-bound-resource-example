@@ -1,29 +1,14 @@
 package com.arunava.example.nasaastronomypictureoftheday.model.remote.data
 
-import org.json.JSONObject
+import com.google.gson.annotations.SerializedName
 
 data class PictureOfTheDayResponse(
-    val date: String,
-    val explanation: String,
-    val hdUrl: String,
-    val mediaType: String,
-    val serviceVersion: String,
-    val title: String,
-    val url: String
-) {
-    companion object {
-
-        @JvmStatic
-        fun fromJsonString(jsonString: String) = JSONObject(jsonString).run {
-            PictureOfTheDayResponse(
-                date = optString("date"),
-                explanation = optString("explanation"),
-                hdUrl = optString("hdurl"),
-                mediaType = optString("media_type"),
-                serviceVersion = optString("service_version"),
-                title = optString("title"),
-                url = optString("url")
-            )
-        }
-    }
-}
+    @SerializedName("date") val date: String?,
+    @SerializedName("explanation") val explanation: String?,
+    @SerializedName("hdurl") val hdUrl: String?,
+    @SerializedName("media_type") val mediaType: String?,
+    @SerializedName("service_version") val serviceVersion: String?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("url") val url: String?,
+    @SerializedName("thumbnail_url") val thumbnailUrl: String?
+)

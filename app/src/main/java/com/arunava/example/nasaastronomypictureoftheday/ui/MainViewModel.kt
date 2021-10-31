@@ -10,7 +10,6 @@ import com.arunava.example.nasaastronomypictureoftheday.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,23 +18,23 @@ class MainViewModel @Inject constructor(private val repository: Repository) : Vi
     val pictureOfTheDay = MediatorLiveData<Resource<Picture>>()
 
     fun getPictureOfTheDay(date: String?) {
-        viewModelScope.launch {
-            pictureOfTheDay.addSource(repository.getPictureOfTheDay(date)) {
-                pictureOfTheDay.value = it
-            }
+        val data = repository.getPictureOfTheDay(viewModelScope, date)
+        pictureOfTheDay.addSource(data) {
+            pictureOfTheDay.value = it
         }
     }
 
     fun saveImage(bitmap: Bitmap, cacheDir: File) {
         viewModelScope.launch {
-            val imageName = "apod_cached"
+            val imageName = "apod_cached.jpg"
 
             val imageFile = File(cacheDir, imageName)
             val imagePath = imageFile.absolutePath
             try {
-                val fos = FileOutputStream(imageFile)
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                fos.close()
+                imageFile.outputStream().use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                    it.flush()
+                }
                 repository.updateImagePath(imagePath)
             } catch (e: Exception) {
 

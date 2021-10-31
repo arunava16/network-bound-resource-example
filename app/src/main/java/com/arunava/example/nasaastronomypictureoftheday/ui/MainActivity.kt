@@ -1,17 +1,16 @@
 package com.arunava.example.nasaastronomypictureoftheday.ui
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import coil.imageLoader
+import coil.load
+import coil.request.ImageRequest
 import com.arunava.example.nasaastronomypictureoftheday.databinding.ActivityMainBinding
 import com.arunava.example.nasaastronomypictureoftheday.util.Resource
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
@@ -45,23 +44,16 @@ class MainActivity : AppCompatActivity() {
                 title.text = it.data?.title
                 description.text = it.data?.explanation
                 if (it.data?.cachedImagePath != null) {
-                    Glide.with(this@MainActivity)
-                        .load(File(it.data.cachedImagePath))
-                        .into(image)
+                    image.load(File(it.data.cachedImagePath))
                 } else {
-                    Glide.with(this@MainActivity)
-                        .load(it.data?.url)
-                        .into(object : CustomTarget<Drawable>() {
-                            override fun onResourceReady(
-                                resource: Drawable,
-                                transition: Transition<in Drawable>?
-                            ) {
-                                binding.image.setImageDrawable(resource)
-                                viewModel.saveImage(resource.toBitmap(), cacheDir)
-                            }
-
-                            override fun onLoadCleared(placeholder: Drawable?) {}
-                        })
+                    val request = ImageRequest.Builder(this@MainActivity)
+                        .data(it.data?.url)
+                        .target { drawable ->
+                            image.setImageDrawable(drawable)
+                            viewModel.saveImage(drawable.toBitmap(), cacheDir)
+                        }
+                        .build()
+                    this@MainActivity.imageLoader.enqueue(request)
                 }
             }
         }

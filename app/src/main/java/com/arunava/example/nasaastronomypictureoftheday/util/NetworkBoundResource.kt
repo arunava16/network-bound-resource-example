@@ -4,40 +4,51 @@ import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import retrofit2.Response
 
 // ResultType: Type for the Resource data.
 // RequestType: Type for the API response.
-abstract class NetworkBoundResource<ResultType, RequestType> {
+abstract class NetworkBoundResource<ResultType, RequestType>(scope: CoroutineScope) {
 
     private var result = MutableLiveData<Resource<ResultType>>()
 
     fun asLiveData() = result as LiveData<Resource<ResultType>>
 
-    suspend fun init() {
-        val dbData = loadFromDb()
-        result.postValue(Resource.Loading(dbData))
-        if (shouldFetch(dbData)) {
-            fetchFromNetwork(dbData)
-        } else {
-            result.postValue(Resource.Success(dbData))
+    init {
+        scope.launch(Dispatchers.IO) {
+            val dbData = loadFromDb()
+            result.postValue(Resource.Loading(dbData))
+            if (shouldFetch(dbData)) {
+                fetchFromNetwork(dbData)
+            } else {
+                result.postValue(Resource.Success(dbData))
+            }
         }
     }
 
     private suspend fun fetchFromNetwork(dbData: ResultType) {
-        delay(3000)
-        val apiResponse = networkFetch()
-        if (apiResponse.isSuccessful && apiResponse.body() != null) {
-            saveFetchResult(apiResponse.body()!!)
-            result.postValue(Resource.Success(loadFromDb()))
-        } else {
-            result.postValue(
-                Resource.Error(
-                    Throwable(apiResponse.errorBody()?.string()),
-                    dbData
+        // Delay to simulate network loading time
+        delay(7000)
+        try {
+            val apiResponse = networkFetch()
+            if (apiResponse.isSuccessful && apiResponse.body() != null) {
+                saveFetchResult(apiResponse.body()!!)
+                val newDbData = loadFromDb()
+                result.postValue(Resource.Success(newDbData))
+            } else {
+                result.postValue(
+                    Resource.Error(
+                        Throwable(apiResponse.errorBody()?.string()),
+                        dbData
+                    )
                 )
-            )
+            }
+        } catch (e: Exception) {
+            result.postValue(Resource.Error(e, dbData))
         }
     }
 

@@ -7,8 +7,7 @@ import com.arunava.example.nasaastronomypictureoftheday.model.remote.Api
 import com.arunava.example.nasaastronomypictureoftheday.model.remote.data.PictureOfTheDayResponse
 import com.arunava.example.nasaastronomypictureoftheday.util.NetworkBoundResource
 import com.arunava.example.nasaastronomypictureoftheday.util.Resource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -19,35 +18,36 @@ class Repository @Inject constructor(
 
     private val picturesDao by lazy { db.pictureOfTheDayDao() }
 
-    suspend fun getPictureOfTheDay(dateString: String?): LiveData<Resource<Picture>> {
-        return withContext(Dispatchers.IO) {
-            object : NetworkBoundResource<Picture, PictureOfTheDayResponse>() {
-                override suspend fun networkFetch(): Response<PictureOfTheDayResponse> {
-                    return api.getPictureOfTheDay(dateString)
-                }
+    fun getPictureOfTheDay(
+        scope: CoroutineScope,
+        dateString: String?
+    ): LiveData<Resource<Picture>> {
+        return object : NetworkBoundResource<Picture, PictureOfTheDayResponse>(scope) {
+            override suspend fun networkFetch(): Response<PictureOfTheDayResponse> {
+                return api.getPictureOfTheDay(dateString)
+            }
 
-                override suspend fun saveFetchResult(item: PictureOfTheDayResponse) {
+            override suspend fun saveFetchResult(item: PictureOfTheDayResponse) {
+                if (item.date != null) {
+                    picturesDao.deletePictures()
                     picturesDao.insertPicture(item.run {
                         Picture(
-                            date = date,
-                            explanation = explanation,
-                            hdUrl = hdUrl,
-                            mediaType = mediaType,
-                            serviceVersion = serviceVersion,
-                            title = title,
-                            url = url
+                            date = date!!,
+                            explanation = explanation.orEmpty(),
+                            hdUrl = hdUrl.orEmpty(),
+                            mediaType = mediaType.orEmpty(),
+                            serviceVersion = serviceVersion.orEmpty(),
+                            title = title.orEmpty(),
+                            url = if (mediaType == "image") url.orEmpty() else thumbnailUrl.orEmpty()
                         )
                     })
                 }
-
-                override suspend fun loadFromDb(): Picture {
-                    return picturesDao.getPicture()
-                }
-            }.run {
-                init()
-                asLiveData()
             }
-        }
+
+            override suspend fun loadFromDb(): Picture {
+                return picturesDao.getPicture()
+            }
+        }.asLiveData()
     }
 
     suspend fun updateImagePath(imagePath: String) {
